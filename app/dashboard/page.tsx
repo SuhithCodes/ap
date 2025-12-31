@@ -20,9 +20,9 @@ import {
 import { ChatPanel, type Message } from "@/components/chat-panel"
 import { ContextBar, type ViewMode } from "@/components/context-bar"
 import { VisualizationPanel } from "@/components/visualization-panel"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { cn } from "@/lib/utils"
 import { getAgentConfig, type AgentRunConfig } from "@/lib/agent-store"
-import type { ActiveFilter } from "@/components/viz-canvas"
 import type { ChartData } from "@/lib/chart-types"
 
 // Task descriptions for context
@@ -44,30 +44,22 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = React.useState(false)
   const [isInitializing, setIsInitializing] = React.useState(true)
   const [viewMode, setViewMode] = React.useState<ViewMode>("split")
-  const [activeFilter, setActiveFilter] = React.useState<ActiveFilter>({
-    metric: "performance",
-    timeframe: "last-5-quarters",
-  })
 
   // Load agent configuration on mount
   React.useEffect(() => {
     const config = getAgentConfig()
     if (!config) {
-      // No config found, redirect to home
       router.push("/")
       return
     }
     setAgentConfig(config)
     setIsInitializing(false)
-
-    // Auto-start analysis
     startInitialAnalysis(config)
   }, [router])
 
   const startInitialAnalysis = async (config: AgentRunConfig) => {
     setIsLoading(true)
 
-    // Create initial message from system
     const systemMessage: Message = {
       id: `system-${Date.now()}`,
       role: "assistant",
@@ -76,7 +68,6 @@ export default function DashboardPage() {
     }
     setMessages([systemMessage])
 
-    // Call Groq API for initial analysis
     try {
       const fileContext = config.files
         .map((f) => `--- ${f.name} ---\n${f.content || "[No content available]"}`)
@@ -119,12 +110,10 @@ Be concise but informative.`,
         }
         setMessages((prev) => [...prev, analysisMessage])
 
-        // Add chart if returned
         if (data.chart) {
           setCharts((prev) => [...prev, data.chart])
         }
       } else {
-        // API error - show fallback message
         const fallbackMessage: Message = {
           id: `fallback-${Date.now()}`,
           role: "assistant",
@@ -151,8 +140,6 @@ Be concise but informative.`,
 
   const generateSuggestions = (tasks: string[], files: AgentRunConfig["files"]): string[] => {
     const suggestions: string[] = []
-    
-    // Check if any file is a CSV (likely numerical data)
     const hasCSV = files.some(f => f.name.endsWith(".csv"))
     
     if (hasCSV) {
@@ -170,7 +157,6 @@ Be concise but informative.`,
       suggestions.push("What patterns do you see?")
     }
     
-    // Ensure we have at least 3 suggestions
     if (suggestions.length < 3) {
       suggestions.push("Tell me more about this data")
     }
@@ -181,7 +167,6 @@ Be concise but informative.`,
   const handleSendMessage = async (content: string) => {
     if (!agentConfig) return
 
-    // Add user message
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -196,10 +181,9 @@ Be concise but informative.`,
         .map((f) => `--- ${f.name} ---\n${f.content || "[No content available]"}`)
         .join("\n\n")
 
-      // Build conversation history
       const conversationHistory = messages
         .filter((m) => m.role === "user" || m.role === "assistant")
-        .slice(-10) // Keep last 10 messages for context
+        .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }))
 
       const response = await fetch("/api/chat", {
@@ -224,11 +208,10 @@ Be concise but informative.`,
           role: "assistant",
           content: data.content,
           timestamp: new Date(),
-          suggestions: generateContextualSuggestions(content, agentConfig.tasks),
+          suggestions: generateContextualSuggestions(content),
         }
         setMessages((prev) => [...prev, aiMessage])
 
-        // Add chart if returned
         if (data.chart) {
           setCharts((prev) => [...prev, data.chart])
         }
@@ -250,46 +233,25 @@ Be concise but informative.`,
     }
   }
 
-  const generateContextualSuggestions = (lastMessage: string, tasks: string[]): string[] => {
+  const generateContextualSuggestions = (lastMessage: string): string[] => {
     const lower = lastMessage.toLowerCase()
     const suggestions: string[] = []
 
     if (lower.includes("summary") || lower.includes("summarize")) {
-      suggestions.push("Show me a chart of this data", "Go deeper on a specific section")
-    } else if (lower.includes("breakdown") || lower.includes("by year") || lower.includes("by category")) {
-      suggestions.push("Show as a line chart", "Compare to previous period")
+      suggestions.push("Show me a chart", "Go deeper")
+    } else if (lower.includes("breakdown") || lower.includes("by year")) {
+      suggestions.push("Show as line chart", "Compare periods")
     } else if (lower.includes("trend")) {
-      suggestions.push("What's causing this trend?", "Forecast future values")
-    } else if (lower.includes("chart") || lower.includes("visual")) {
-      suggestions.push("Show as a different chart type", "Add more data series")
+      suggestions.push("What's causing this?", "Forecast values")
     } else {
-      suggestions.push("Show me a visualization", "Break down by category")
+      suggestions.push("Show visualization", "Break down by category")
     }
 
-    if (tasks.includes("reasoning")) {
-      suggestions.push("What conclusions can you draw?")
-    }
-
-    return suggestions.slice(0, 3)
+    return suggestions.slice(0, 2)
   }
 
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion)
-  }
-
-  const handleFilterChange = (update: Partial<ActiveFilter>) => {
-    setActiveFilter((prev) => ({ ...prev, ...update }))
-  }
-
-  const handleClearFilters = () => {
-    setActiveFilter({
-      metric: "performance",
-      timeframe: "last-5-quarters",
-    })
-  }
-
-  const handleViewModeChange = (mode: ViewMode) => {
-    setViewMode(mode)
   }
 
   const handleNewRun = () => {
@@ -300,7 +262,7 @@ Be concise but informative.`,
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-300 border-t-slate-900 dark:border-slate-700 dark:border-t-slate-100" />
           <p className="text-sm text-slate-600 dark:text-slate-400">Loading agent...</p>
         </div>
       </div>
@@ -312,8 +274,8 @@ Be concise but informative.`,
       <AppSidebar />
       <SidebarInset className="flex flex-col">
         {/* Header */}
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex items-center gap-2 px-4">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950">
+          <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -326,30 +288,28 @@ Be concise but informative.`,
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Agent Run</BreadcrumbPage>
+                  <BreadcrumbPage>Dashboard</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <ThemeToggle />
         </header>
 
         {/* Context Bar */}
         <ContextBar
-          activeFilter={activeFilter}
-          onFilterChange={handleFilterChange}
-          onClearFilters={handleClearFilters}
           viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
+          onViewModeChange={setViewMode}
         />
 
-        {/* Main Content: Dynamic Layout based on View Mode */}
+        {/* Main Content */}
         <div className="relative flex flex-1 overflow-hidden">
           {/* Chat Panel */}
           {viewMode !== "visual" && (
             <div
               className={cn(
                 "shrink-0 border-r border-slate-200 dark:border-slate-800",
-                viewMode === "split" && "w-[40%] min-w-[360px] max-w-[520px]",
+                viewMode === "split" && "w-[40%] min-w-[320px] max-w-[480px]",
                 viewMode === "chat" && "w-full border-r-0"
               )}
             >
@@ -363,7 +323,7 @@ Be concise but informative.`,
             </div>
           )}
 
-          {/* Visualization Panel - Sticky */}
+          {/* Visualization Panel */}
           {viewMode !== "chat" && agentConfig && (
             <div
               className={cn(
@@ -371,14 +331,12 @@ Be concise but informative.`,
                 viewMode === "visual" && "w-full"
               )}
             >
-              <div className="sticky top-0">
-                <VisualizationPanel
-                  config={agentConfig}
-                  charts={charts}
-                  onNewRun={handleNewRun}
-                  className="h-[calc(100vh-8rem)]"
-                />
-              </div>
+              <VisualizationPanel
+                config={agentConfig}
+                charts={charts}
+                onNewRun={handleNewRun}
+                className="h-full"
+              />
             </div>
           )}
         </div>

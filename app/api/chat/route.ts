@@ -33,11 +33,14 @@ const VISUALIZATION_PROMPT = `
 When the user asks for data breakdowns, comparisons, trends, or analysis that could benefit from visualization:
 
 1. First provide a clear text explanation
-2. If applicable, include table data as JSON wrapped in <table></table> tags using this exact format:
+2. If applicable, include table data as JSON wrapped in <table></table> tags. IMPORTANT: Use this EXACT format with opening AND closing tags:
 
 <table>{"headers":["Column1","Column2","Column3"],"rows":[["data1","data2","data3"],["data4","data5","data6"]]}</table>
 
-The JSON must have "headers" (array of column names) and "rows" (array of arrays with row data). Keep the JSON on a single line with no line breaks inside it.
+CRITICAL: 
+- Use <table> and </table> tags (NOT <table= or other variations)
+- The JSON must have "headers" (array of column names) and "rows" (array of arrays with row data)
+- Keep the JSON on a single line with no line breaks inside it
 
 3. Then provide chart data in this exact JSON format (on a new line, wrapped in <chart></chart> tags):
 

@@ -275,19 +275,43 @@ function jsonTableToMarkdown(tableData: TableData): string {
 
 // Parse and convert JSON tables in content to markdown
 function convertJsonTablesToMarkdown(content: string): string {
-  // Find all <table>...</table> tags with JSON inside
-  const tablePattern = /<table>([\s\S]*?)<\/table>/gi
-  
-  return content.replace(tablePattern, (match, jsonStr) => {
+  let result = content
+
+  // Pattern 1: <table>{"headers":...}</table>
+  result = result.replace(/<table>([\s\S]*?)<\/table>/gi, (match, jsonStr) => {
     try {
       const tableData = JSON.parse(jsonStr.trim()) as TableData
       return "\n\n" + jsonTableToMarkdown(tableData) + "\n\n"
     } catch (e) {
-      // If JSON parsing fails, remove the tag but keep trying to show something
-      console.warn("Failed to parse table JSON:", e)
+      console.warn("Failed to parse table JSON (pattern 1):", e)
       return ""
     }
   })
+
+  // Pattern 2: <table={"headers":...}></table> or <table={"headers":...}>
+  result = result.replace(/<table=(\{[\s\S]*?\})>(?:<\/table>)?/gi, (match, jsonStr) => {
+    try {
+      const tableData = JSON.parse(jsonStr.trim()) as TableData
+      return "\n\n" + jsonTableToMarkdown(tableData) + "\n\n"
+    } catch (e) {
+      console.warn("Failed to parse table JSON (pattern 2):", e)
+      return ""
+    }
+  })
+
+  // Pattern 3: Inline format like <table={"headers":...,"rows":...}> without proper closing
+  // This catches cases where the JSON might span multiple lines or have complex structure
+  result = result.replace(/<table=(\{"headers":\[.*?\],"rows":\[.*?\]\})>/gi, (match, jsonStr) => {
+    try {
+      const tableData = JSON.parse(jsonStr.trim()) as TableData
+      return "\n\n" + jsonTableToMarkdown(tableData) + "\n\n"
+    } catch (e) {
+      console.warn("Failed to parse table JSON (pattern 3):", e)
+      return ""
+    }
+  })
+
+  return result
 }
 
 // Markdown Content Renderer

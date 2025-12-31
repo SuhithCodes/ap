@@ -2,25 +2,12 @@
 
 import * as React from "react"
 import {
-  BarChart3,
-  BookOpen,
-  Database,
-  FolderKanban,
-  HelpCircle,
+  Home,
   LayoutDashboard,
   LineChart,
-  PieChart,
-  Send,
-  Settings2,
-  Sparkles,
-  TrendingUp,
-  Users,
 } from "lucide-react"
+import { usePathname } from "next/navigation"
 
-import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -29,147 +16,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar"
-
-const data = {
-  user: {
-    name: "Alex Morgan",
-    email: "alex@company.com",
-    avatar: "/avatars/alex.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-      items: [
-        {
-          title: "Overview",
-          url: "/dashboard",
-        },
-        {
-          title: "Performance",
-          url: "#",
-        },
-        {
-          title: "Trends",
-          url: "#",
-        },
-        {
-          title: "Forecasts",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "AI Assistant",
-      url: "#",
-      icon: Sparkles,
-      items: [
-        {
-          title: "New Conversation",
-          url: "/dashboard",
-        },
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Saved Insights",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      url: "#",
-      icon: BarChart3,
-      items: [
-        {
-          title: "Summary",
-          url: "#",
-        },
-        {
-          title: "Analysis",
-          url: "#",
-        },
-        {
-          title: "Comparisons",
-          url: "#",
-        },
-        {
-          title: "Export",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Data Sources",
-          url: "#",
-        },
-        {
-          title: "Integrations",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Preferences",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-    },
-    {
-      title: "Help & Support",
-      url: "#",
-      icon: HelpCircle,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Sales Analytics",
-      url: "#",
-      icon: TrendingUp,
-    },
-    {
-      name: "Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Operations",
-      url: "#",
-      icon: FolderKanban,
-    },
-    {
-      name: "Customer Data",
-      url: "#",
-      icon: Users,
-    },
-  ],
-}
+import { ThemeToggleSimple } from "@/components/theme-toggle"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -182,22 +36,47 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">AnalyticsGPT</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    AI-Powered Analytics
-                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/"}>
+                  <a href="/">
+                    <Home className="size-4" />
+                    <span>New Agent</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
+                  <a href="/dashboard">
+                    <LayoutDashboard className="size-4" />
+                    <span>Dashboard</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-xs text-muted-foreground">Theme</span>
+              <ThemeToggleSimple />
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )
