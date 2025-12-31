@@ -1,40 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AnalyticsGPT
 
-## Project Docs
+AI Agent Platform powered by [Groq](https://groq.com) for lightning-fast inference.
 
-See `docs/README.md` for product + architecture docs (hybrid AI chat + visualization).
+## Features
+
+- **Data Import**: Upload CSV, PDF, and Markdown files
+- **Task Selection**: Summarization, Q&A, Data Extraction, Classification, Reasoning, Translation, Content Generation
+- **Agent Configuration**: Choose from Reasoning, Document, Multimodal, or Multilingual agents
+- **Groq Models**: Access to Llama 3.3 70B, Llama 3.1 8B, Mixtral 8x7B, Gemma 2 9B, and more
+- **Streaming Responses**: Real-time AI responses with streaming support
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure Groq API
+
+1. Get your API key from [Groq Console](https://console.groq.com/keys)
+2. Create a `.env.local` file in the project root:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+```
+
+### 3. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Groq Models Available
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Model | Description | Speed |
+|-------|-------------|-------|
+| Llama 3.3 70B | Most capable, 128k context | Fast |
+| Llama 3.1 8B | Ultra-fast for simple tasks | Instant |
+| Mixtral 8x7B | Balanced performance | Fast |
+| Gemma 2 9B | Google's efficient model | Instant |
+| Llama Guard 3 8B | Safety & moderation | Instant |
+
+## API Routes
+
+- `POST /api/chat` - Non-streaming chat completion
+- `POST /api/chat/stream` - Streaming chat completion (SSE)
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [{"role": "user", "content": "Summarize this data"}],
+    "task": "summarization",
+    "model": "llama-3.3-70b-versatile",
+    "fileContext": "Your file content here..."
+  }'
+```
+
+## Project Structure
+
+```
+├── app/
+│   ├── api/chat/          # Groq API routes
+│   ├── dashboard/         # Analytics dashboard
+│   └── page.tsx           # Main agent configuration page
+├── components/
+│   ├── file-upload.tsx    # Data import component
+│   ├── task-selection.tsx # Task picker
+│   ├── agent-model-config.tsx # Model configuration
+│   └── config-summary.tsx # Summary & run panel
+├── hooks/
+│   └── use-groq-chat.ts   # Chat hook with streaming
+└── lib/
+    └── groq.ts            # Groq SDK configuration
+```
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **AI**: Groq SDK
+- **UI**: shadcn/ui + Tailwind CSS
+- **Charts**: Recharts
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+- [Groq Documentation](https://console.groq.com/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [shadcn/ui](https://ui.shadcn.com)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Deploy to Vercel with your `GROQ_API_KEY` environment variable configured.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)

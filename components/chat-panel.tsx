@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { Send, Sparkles, User, Lightbulb, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -72,10 +74,10 @@ export function ChatPanel({
         </div>
         <div>
           <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-            Data Assistant
+            AI Assistant
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Ask questions about graduation rates
+            Ask questions about your data
           </p>
         </div>
         <Badge
@@ -98,20 +100,20 @@ export function ChatPanel({
                 Start a conversation
               </h3>
               <p className="mb-6 max-w-[200px] text-xs text-slate-500 dark:text-slate-400">
-                Ask about graduation trends, compare demographics, or explore specific years
+                Ask about trends, compare metrics, or explore your data
               </p>
               <div className="flex flex-col gap-2">
                 {[
-                  "Show me the 4-year graduation rate trend",
-                  "Break down by gender",
-                  "Compare 2022 vs 2023",
+                  "Show me the performance trend",
+                  "Break down by category",
+                  "Compare Q3 vs Q4",
                 ].map((prompt) => (
                   <button
                     key={prompt}
                     onClick={() => onSendMessage(prompt)}
-                    className="group flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-600 transition-all hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-600 dark:hover:bg-violet-900/20 dark:hover:text-violet-300"
+                    className="group flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs text-slate-600 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-100"
                   >
-                    <ChevronRight className="h-3 w-3 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-violet-500" />
+                    <ChevronRight className="h-3 w-3 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-slate-600" />
                     {prompt}
                   </button>
                 ))}
@@ -158,7 +160,11 @@ export function ChatPanel({
                       : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700"
                   )}
                 >
-                  {message.content}
+                  {message.role === "assistant" ? (
+                    <MarkdownContent content={message.content} />
+                  ) : (
+                    message.content
+                  )}
                 </div>
 
                 {/* Suggestions */}
@@ -168,7 +174,7 @@ export function ChatPanel({
                       <button
                         key={suggestion}
                         onClick={() => onSuggestionClick?.(suggestion)}
-                        className="rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50"
+                        className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                       >
                         {suggestion}
                       </button>
@@ -194,9 +200,9 @@ export function ChatPanel({
                 <Sparkles className="h-3.5 w-3.5 text-white dark:text-slate-900" />
               </div>
               <div className="flex items-center gap-1 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-                <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400 [animation-delay:-0.3s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400 [animation-delay:-0.15s]" />
-                <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
               </div>
             </div>
           )}
@@ -211,8 +217,8 @@ export function ChatPanel({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about graduation rates..."
-            className="min-h-[44px] max-h-[120px] resize-none rounded-xl border-slate-200 bg-white text-sm shadow-sm focus-visible:ring-violet-500 dark:border-slate-700 dark:bg-slate-800"
+            placeholder="Ask about your data..."
+            className="min-h-[44px] max-h-[120px] resize-none rounded-xl border-slate-200 bg-white text-sm shadow-sm dark:border-slate-700 dark:bg-slate-800"
             disabled={isLoading}
           />
           <Button
@@ -229,3 +235,184 @@ export function ChatPanel({
   )
 }
 
+// Strip chart tags from content
+function stripChartTags(content: string): string {
+  return content.replace(/<chart>[\s\S]*?<\/chart>/gi, "").trim()
+}
+
+// Interface for table JSON data
+interface TableData {
+  headers: string[]
+  rows: string[][]
+}
+
+// Convert JSON table data to markdown table
+function jsonTableToMarkdown(tableData: TableData): string {
+  const { headers, rows } = tableData
+  
+  if (!headers || headers.length === 0) return ""
+  
+  const lines: string[] = []
+  
+  // Header row
+  lines.push("| " + headers.join(" | ") + " |")
+  
+  // Separator row
+  lines.push("| " + headers.map(() => "---").join(" | ") + " |")
+  
+  // Data rows
+  for (const row of rows) {
+    // Ensure row has same number of columns as headers
+    const paddedRow = [...row]
+    while (paddedRow.length < headers.length) {
+      paddedRow.push("")
+    }
+    lines.push("| " + paddedRow.slice(0, headers.length).join(" | ") + " |")
+  }
+  
+  return lines.join("\n")
+}
+
+// Parse and convert JSON tables in content to markdown
+function convertJsonTablesToMarkdown(content: string): string {
+  // Find all <table>...</table> tags with JSON inside
+  const tablePattern = /<table>([\s\S]*?)<\/table>/gi
+  
+  return content.replace(tablePattern, (match, jsonStr) => {
+    try {
+      const tableData = JSON.parse(jsonStr.trim()) as TableData
+      return "\n\n" + jsonTableToMarkdown(tableData) + "\n\n"
+    } catch (e) {
+      // If JSON parsing fails, remove the tag but keep trying to show something
+      console.warn("Failed to parse table JSON:", e)
+      return ""
+    }
+  })
+}
+
+// Markdown Content Renderer
+function MarkdownContent({ content }: { content: string }) {
+  // Remove chart tags and convert JSON tables to markdown before rendering
+  const cleanContent = convertJsonTablesToMarkdown(stripChartTags(content))
+  
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        // Headings
+        h1: ({ children }) => (
+          <h1 className="mb-2 mt-4 text-lg font-bold text-slate-900 first:mt-0 dark:text-slate-100">
+            {children}
+          </h1>
+        ),
+        h2: ({ children }) => (
+          <h2 className="mb-2 mt-3 text-base font-semibold text-slate-900 first:mt-0 dark:text-slate-100">
+            {children}
+          </h2>
+        ),
+        h3: ({ children }) => (
+          <h3 className="mb-1.5 mt-2.5 text-sm font-semibold text-slate-900 first:mt-0 dark:text-slate-100">
+            {children}
+          </h3>
+        ),
+        h4: ({ children }) => (
+          <h4 className="mb-1 mt-2 text-sm font-medium text-slate-900 first:mt-0 dark:text-slate-100">
+            {children}
+          </h4>
+        ),
+        // Paragraphs
+        p: ({ children }) => (
+          <p className="mb-2 last:mb-0">{children}</p>
+        ),
+        // Lists
+        ul: ({ children }) => (
+          <ul className="mb-2 ml-4 list-disc space-y-1 last:mb-0">{children}</ul>
+        ),
+        ol: ({ children }) => (
+          <ol className="mb-2 ml-4 list-decimal space-y-1 last:mb-0">{children}</ol>
+        ),
+        li: ({ children }) => (
+          <li className="text-sm">{children}</li>
+        ),
+        // Strong and emphasis
+        strong: ({ children }) => (
+          <strong className="font-semibold text-slate-900 dark:text-slate-100">
+            {children}
+          </strong>
+        ),
+        em: ({ children }) => (
+          <em className="italic">{children}</em>
+        ),
+        // Code
+        code: ({ children, className }) => {
+          const isInline = !className
+          if (isInline) {
+            return (
+              <code className="rounded bg-slate-100 px-1 py-0.5 text-xs font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200">
+                {children}
+              </code>
+            )
+          }
+          return (
+            <code className="block overflow-x-auto rounded-lg bg-slate-100 p-3 text-xs font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200">
+              {children}
+            </code>
+          )
+        },
+        pre: ({ children }) => (
+          <pre className="my-2 overflow-x-auto rounded-lg bg-slate-100 dark:bg-slate-700">
+            {children}
+          </pre>
+        ),
+        // Blockquote
+        blockquote: ({ children }) => (
+          <blockquote className="my-2 border-l-2 border-slate-300 pl-3 italic text-slate-600 dark:border-slate-600 dark:text-slate-400">
+            {children}
+          </blockquote>
+        ),
+        // Horizontal rule
+        hr: () => (
+          <hr className="my-3 border-slate-200 dark:border-slate-700" />
+        ),
+        // Links
+        a: ({ href, children }) => (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            {children}
+          </a>
+        ),
+        // Tables
+        table: ({ children }) => (
+          <div className="my-3 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+            <table className="min-w-full text-sm">{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead className="bg-slate-100 dark:bg-slate-800">{children}</thead>
+        ),
+        tbody: ({ children }) => <tbody className="divide-y divide-slate-200 dark:divide-slate-700">{children}</tbody>,
+        tr: ({ children }) => (
+          <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+            {children}
+          </tr>
+        ),
+        th: ({ children }) => (
+          <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+            {children}
+          </th>
+        ),
+        td: ({ children }) => (
+          <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+            {children}
+          </td>
+        ),
+      }}
+    >
+      {cleanContent}
+    </ReactMarkdown>
+  )
+}

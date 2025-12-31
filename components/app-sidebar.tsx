@@ -4,11 +4,12 @@ import * as React from "react"
 import {
   BarChart3,
   BookOpen,
-  GraduationCap,
+  Database,
+  FolderKanban,
   HelpCircle,
   LayoutDashboard,
-  MessageSquare,
-  School,
+  LineChart,
+  PieChart,
   Send,
   Settings2,
   Sparkles,
@@ -32,31 +33,31 @@ import {
 
 const data = {
   user: {
-    name: "Sarah Chen",
-    email: "sarah.chen@district.edu",
-    avatar: "/avatars/sarah.jpg",
+    name: "Alex Morgan",
+    email: "alex@company.com",
+    avatar: "/avatars/alex.jpg",
   },
   navMain: [
     {
-      title: "Analytics",
+      title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboard,
       isActive: true,
       items: [
         {
-          title: "Graduation Rates",
+          title: "Overview",
           url: "/dashboard",
         },
         {
-          title: "Attendance",
+          title: "Performance",
           url: "#",
         },
         {
-          title: "FAFSA Completion",
+          title: "Trends",
           url: "#",
         },
         {
-          title: "Assessment Scores",
+          title: "Forecasts",
           url: "#",
         },
       ],
@@ -86,19 +87,19 @@ const data = {
       icon: BarChart3,
       items: [
         {
-          title: "Annual Summary",
+          title: "Summary",
           url: "#",
         },
         {
-          title: "Trend Analysis",
+          title: "Analysis",
           url: "#",
         },
         {
-          title: "Comparative Reports",
+          title: "Comparisons",
           url: "#",
         },
         {
-          title: "Export Center",
+          title: "Export",
           url: "#",
         },
       ],
@@ -113,11 +114,11 @@ const data = {
           url: "#",
         },
         {
-          title: "Notifications",
+          title: "Integrations",
           url: "#",
         },
         {
-          title: "Team Access",
+          title: "Team",
           url: "#",
         },
         {
@@ -146,22 +147,22 @@ const data = {
   ],
   projects: [
     {
-      name: "High Schools",
-      url: "#",
-      icon: School,
-    },
-    {
-      name: "Middle Schools",
-      url: "#",
-      icon: School,
-    },
-    {
-      name: "District Overview",
+      name: "Sales Analytics",
       url: "#",
       icon: TrendingUp,
     },
     {
-      name: "Demographics",
+      name: "Marketing",
+      url: "#",
+      icon: PieChart,
+    },
+    {
+      name: "Operations",
+      url: "#",
+      icon: FolderKanban,
+    },
+    {
+      name: "Customer Data",
       url: "#",
       icon: Users,
     },
@@ -177,10 +178,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <a href="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100">
-                  <GraduationCap className="size-4 text-white dark:text-slate-900" />
+                  <LineChart className="size-4 text-white dark:text-slate-900" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">EduInsight</span>
+                  <span className="truncate font-semibold">AnalyticsGPT</span>
                   <span className="truncate text-xs text-muted-foreground">
                     AI-Powered Analytics
                   </span>

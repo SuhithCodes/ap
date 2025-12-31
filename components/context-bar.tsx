@@ -6,9 +6,9 @@ import {
   X,
   ChevronDown,
   Calendar,
-  Users,
-  BarChart3,
   Layers,
+  BarChart3,
+  Tag,
   MessageSquare,
   LayoutPanelLeft,
   LineChart,
@@ -28,7 +28,7 @@ export type ActiveFilter = {
   metric: string
   timeframe: string
   subgroup?: string
-  year?: string
+  period?: string
 }
 
 export type ViewMode = "split" | "chat" | "visual"
@@ -43,25 +43,25 @@ interface ContextBarProps {
 }
 
 const metrics = [
-  { value: "4-year-graduation", label: "4-Year Graduation Rate" },
-  { value: "5-year-graduation", label: "5-Year Graduation Rate" },
-  { value: "dropout-rate", label: "Dropout Rate" },
-  { value: "attendance", label: "Average Attendance" },
+  { value: "performance", label: "Performance" },
+  { value: "revenue", label: "Revenue" },
+  { value: "conversion", label: "Conversion Rate" },
+  { value: "engagement", label: "Engagement" },
 ]
 
 const timeframes = [
-  { value: "last-5-years", label: "Last 5 Years" },
-  { value: "last-3-years", label: "Last 3 Years" },
+  { value: "last-5-quarters", label: "Last 5 Quarters" },
   { value: "last-year", label: "Last Year" },
+  { value: "ytd", label: "Year to Date" },
   { value: "all-time", label: "All Time" },
 ]
 
 const subgroups = [
-  { value: undefined, label: "All Students" },
-  { value: "gender", label: "By Gender" },
-  { value: "ethnicity", label: "By Ethnicity" },
-  { value: "economically-disadvantaged", label: "Economically Disadvantaged" },
-  { value: "special-education", label: "Special Education" },
+  { value: undefined, label: "All Data" },
+  { value: "by-category", label: "By Category" },
+  { value: "by-region", label: "By Region" },
+  { value: "by-channel", label: "By Channel" },
+  { value: "by-segment", label: "By Segment" },
 ]
 
 const viewModes: { value: ViewMode; label: string; icon: React.ElementType }[] = [
@@ -79,7 +79,7 @@ export function ContextBar({
   className,
 }: ContextBarProps) {
   const hasActiveFilters =
-    activeFilter.subgroup || activeFilter.year
+    activeFilter.subgroup || activeFilter.period
 
   return (
     <div
@@ -167,9 +167,9 @@ export function ContextBar({
                   "border-slate-400 bg-slate-100 dark:border-slate-600 dark:bg-slate-700"
               )}
             >
-              <Users className="h-3 w-3" />
+              <Tag className="h-3 w-3" />
               {subgroups.find((s) => s.value === activeFilter.subgroup)?.label ||
-                "All Students"}
+                "All Data"}
               <ChevronDown className="h-3 w-3 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
@@ -189,16 +189,16 @@ export function ContextBar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Year Badge (if selected) */}
-        {activeFilter.year && (
+        {/* Period Badge (if selected) */}
+        {activeFilter.period && (
           <Badge
             variant="secondary"
             className="h-7 gap-1.5 rounded-full bg-slate-200 px-3 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-300"
           >
             <Layers className="h-3 w-3" />
-            {activeFilter.year}
+            {activeFilter.period}
             <button
-              onClick={() => onFilterChange({ year: undefined })}
+              onClick={() => onFilterChange({ period: undefined })}
               className="ml-0.5 rounded-full p-0.5 hover:bg-slate-300 dark:hover:bg-slate-600"
             >
               <X className="h-3 w-3" />
